@@ -25,7 +25,9 @@ export default defineConfig({
         (spec: Cypress.Spec, results: CypressCommandLine.RunResult) => {
           if (results && results.video) {
             // Do we have failures for any retry attempts?
-            const failures: boolean = results.tests.some((test: CypressCommandLine.TestResult): boolean => test.attempts.some((attempt: CypressCommandLine.AttemptResult) => attempt.state === 'failed'))
+            const failures: boolean = results.tests.some((test: CypressCommandLine.TestResult): boolean =>
+              test.attempts.some((attempt: CypressCommandLine.AttemptResult) => attempt.state === 'failed'),
+            )
             if (!failures) {
               // delete the video if the spec passed and no tests retried
               fs.unlinkSync(results.video)

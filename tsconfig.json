@@ -14,10 +14,7 @@
     "cypress.config.ts",
     "capacitor.config.ts",
     "app.config.ts",
-    "app.vue",
+    "app.vue"
   ],
-  "exclude": [
-    "dist",
-    "node_modules",
-  ],
+  "exclude": ["dist", "node_modules"]
 }

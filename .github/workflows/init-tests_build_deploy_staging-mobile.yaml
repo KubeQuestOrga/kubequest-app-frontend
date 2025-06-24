@@ -9,7 +9,7 @@ jobs:
   tests_build_deploy:
     strategy:
       matrix:
-        platform: [ubuntu-latest, macos-latest]
+        platform: [ubuntu-latest, macos-15]
     runs-on: ${{ matrix.platform }}
     steps:
       - name: Checkout repository
@@ -42,10 +42,10 @@ jobs:
       - name: Read current version from version.txt and append branch and commit hash - Android
         if: ${{ matrix.platform == 'ubuntu-latest' }}
         run: |
-          VERSION_BASE=$(cat version.txt)
-
           # Check if VERSION_BASE is empty and set default value if necessary
-          if [ -z "$VERSION_BASE" ]; then
+          if [ -f version.txt ]; then
+            VERSION_BASE=$(cat version.txt)
+          else
             VERSION_BASE="1.0.0"
           fi
 
@@ -100,27 +100,21 @@ jobs:
           --keystorealiaspass "$ANDROID_KEYSTORE_KEY_PASSWORD" \
           --androidreleasetype APK
 
-      - name: Install the Apple Certificate and Provisioning Profile (Apple Distribution) - AppStore / TestFlight - iOS
-        if: ${{ matrix.platform == 'macos-latest' }}
+      - name: Install the Apple Certificate (Apple Distribution) - AppStore / TestFlight - iOS
+        if: ${{ matrix.platform == 'macos-15' }}
         env:
           # Certificat Apple au format p12 encodé en base64
           IOSMACOS_APPLE_CERTIFICATE_APPLEDISTRIBUTION_P12_BASE64: ${{ secrets.IOSMACOS_APPLE_CERTIFICATE_APPLEDISTRIBUTION_P12_BASE64 }}
           # Mot de passe du certificat apple au format p12
           IOSMACOS_APPLE_CERTIFICATE_APPLEDISTRIBUTION_P12_PASSWORD: ${{ secrets.IOSMACOS_APPLE_CERTIFICATE_APPLEDISTRIBUTION_P12_PASSWORD }}
-          # Profil de provisionnement Apple au format : *.mobileprovision encodé en base64
-          # TODO: A modifier pour chaque nouvelle application iOS pour : secrets.IOS_APPLE_PROVISIONING_PROFILE_APPLEDISTRIBUTION_FLAPIEXAMPLEAPP_BASE64
-          IOSMACOS_APPLE_PROVISIONING_PROFILE_APPLEDISTRIBUTION_BASE64: ${{ secrets.IOS_APPLE_PROVISIONING_PROFILE_APPLEDISTRIBUTION_FLAPIEXAMPLEAPP_BASE64 }}
-          # Un nouveau trousseau sera créé sur le coureur, de sorte que le mot de passe du nouveau trousseau, peut être n'importe quelle nouvelle chaîne aléatoire
           APPLE_KEYCHAIN_PASSWORD: ${{ secrets.APPLE_KEYCHAIN_PASSWORD }}
         run: |
           # create variables
           CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
-          PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
           KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
 
           # import certificate and provisioning profile from secrets
           echo -n "$IOSMACOS_APPLE_CERTIFICATE_APPLEDISTRIBUTION_P12_BASE64" | base64 --decode -o $CERTIFICATE_PATH
-          echo -n "$IOSMACOS_APPLE_PROVISIONING_PROFILE_APPLEDISTRIBUTION_BASE64" | base64 --decode -o $PP_PATH
 
           # create temporary keychain
           security create-keychain -p "$APPLE_KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
@@ -134,38 +128,53 @@ jobs:
 
           # apply provisioning profile
           mkdir -p ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
-          cp $PP_PATH ~/Library/Developer/Xcode/UserData/Provisioning\ Profiles
 
       - name: Setup Xcode and Setup Command Line Tools - iOS
-        if: ${{ matrix.platform == 'macos-latest' }}
+        if: ${{ matrix.platform == 'macos-15' }}
         # https://github.com/actions/runner-images/blob/main/images/macos/macos-14-Readme.md
         uses: maxim-lobanov/setup-xcode@v1
         with:
-          xcode-version: '16.2.0'
+          xcode-version: '16.4.0'
 
-      # - name: Determine SDK Path and set SDKROOT - iOS
-      #   if: ${{ matrix.platform == 'macos-latest' }}
-      #   run: |
-      #    SDKROOT=$(xcrun --sdk iphoneos --show-sdk-path)
-      #     echo "SDKROOT=$SDKROOT" >> $GITHUB_ENV
-
-      - name: Disable automatic signing in Xcode project
-        if: ${{ matrix.platform == 'macos-latest' }}
+      - name: Determine SDK Path and set SDKROOT - iOS
+        if: ${{ matrix.platform == 'macos-15' }}
         run: |
-          cd ios/App
-          sed -i '' 's/CODE_SIGN_STYLE = Automatic;/CODE_SIGN_STYLE = Manual;/g' App.xcodeproj/project.pbxproj
-          sed -i '' 's/DevelopmentTeam = "";$/DevelopmentTeam = "${{ secrets.APPLE_TEAM_ID }}";/g' App.xcodeproj/project.pbxproj
+          SDKROOT=$(xcrun --sdk iphoneos --show-sdk-path)
+          echo "SDKROOT=$SDKROOT" >> $GITHUB_ENV
+
+      - name: Setup fastlane with brew - iOS
+        if: ${{ matrix.platform == 'macos-15' }}
+        run: |
+          brew install fastlane
+
+      - name: Run fastlane to create a new app in App Store Connect and prepare for build - iOS
+        if: ${{ matrix.platform == 'macos-15' }}
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          APPLE_APPSTORECONNECT_API_KEY_ID: ${{ secrets.APPLE_APPSTORECONNECT_API_KEY_ID }}
+          APPLE_APPSTORECONNECT_API_ISSUER_ID: ${{ secrets.APPLE_APPSTORECONNECT_API_ISSUER_ID }}
+          APPLE_APPSTORECONNECT_API_KEY_P8_BASE64: ${{ secrets.APPLE_APPSTORECONNECT_API_KEY_P8_BASE64 }}
+          APP_NAME: 'FlapiExampleApp'
+          IOS_APPLE_PROVISIONING_PROFILE_APPLEDISTRIBUTION_NAME: 'FlapiExampleApp'
+          APP_VERSION: '1.0.0'
+          APP_IOSMACOS_IDENTIFIER: 'com.example.flapiexampleapp'
+          FASTLANE_USERNAME: ${{ secrets.APPLE_ID }}
+          FASTLANE_SESSION: ${{ secrets.FASTLANE_SESSION }}
+          FASTLANE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+          FASTLANE_APPLE_APPLICATION_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APPLICATION_SPECIFIC_PASSWORD }}
+        run: fastlane create_new_app
 
       - name: Build with Capacitor - iOS
-        if: ${{ matrix.platform == 'macos-latest' }}
-        run: xcodebuild -workspace './ios/App/App.xcworkspace' -scheme App -destination generic/platform=iOS -archivePath App.xcarchive archive && ls -la
+        if: ${{ matrix.platform == 'macos-15' }}
+        run: npm run mobile:build:ios:staging && ls -la
 
       - name: Verify if .app is signed - iOS
-        if: ${{ matrix.platform == 'macos-latest' }}
+        if: ${{ matrix.platform == 'macos-15' }}
         run: codesign --verify --deep --verify --verbose=4 path/to/*.app
 
       - name: Create package .ipa for AppStore/TestFlight - iOS
-        if: ${{ matrix.platform == 'macos-latest' }}
+        if: ${{ matrix.platform == 'macos-15' }}
         run: |
           # Create Payload directory and move .app into it
           mkdir Payload
@@ -179,20 +188,20 @@ jobs:
           mv $APP_NAME.ipa path/to/build/
 
       - name: Verify if .ipa is valid with altool - iOS
-        if: ${{ matrix.platform == 'macos-latest' }}
+        if: ${{ matrix.platform == 'macos-15' }}
         run: |
           xcrun altool --validate-app --file path/to/*.ipa --type ios --username ${{ secrets.APPLE_ID }} --password ${{ secrets.APPLE_APPLICATION_SPECIFIC_PASSWORD }}
 
       - name: Upload Build Artifact
         if: ${{ matrix.platform == 'ubuntu-latest' }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: android-aab
           path: android/app/build/outputs/bundle/**/*.aab
 
       - name: Upload iOS Archive
-        if: ${{ matrix.platform == 'macos-latest' }}
-        uses: actions/upload-artifact@v3
+        if: ${{ matrix.platform == 'macos-15' }}
+        uses: actions/upload-artifact@v4
         with:
           name: ios-archive
           path: ios/App.xcarchive

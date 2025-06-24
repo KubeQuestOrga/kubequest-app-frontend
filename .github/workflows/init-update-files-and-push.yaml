@@ -28,7 +28,6 @@ permissions:
 jobs:
   update-files:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -43,15 +42,21 @@ jobs:
           git remote set-url origin https://x-access-token:${{ secrets.PAT_TOKEN }}@github.com/${{ github.repository }}
           git remote -v
 
+      - name: Extract subdomain base
+        id: prepare
+        # Pour extraire uniquement la partie avant le TLD (.com, .fr, etc.).
+        run: |
+          echo "SUBDOMAIN_BASE=$(echo '${{ inputs.subdomain }}' | sed 's/\..*//')" >> $GITHUB_OUTPUT
+
       - name: Modify files
         run: |
           sed -i "s/customerName-projectName/${{ inputs.customerName }}-${{ inputs.projectName }}/g" k8s/**/*.yaml
           sed -i "s/customername-projectname/${{ inputs.customerName }}-${{ inputs.projectName }}/g" docker-compose.yml
-          sed -i "s/example/${{ inputs.subdomain }}/g" k8s/**/*.yaml
-          sed -i "s/example/${{ inputs.subdomain }}/g" .env.*
-          sed -i "s/example/${{ inputs.subdomain }}/g" README.md
-          sed -i "s/example/${{ inputs.subdomain }}/g" src-tauri/tauri.conf.json
-          sed -i "s/example/${{ inputs.subdomain }}/g" src-tauri/updater.json
+          sed -i "s/example/${{ steps.prepare.outputs.SUBDOMAIN_BASE }}/g" k8s/**/*.yaml
+          sed -i "s/example/${{ steps.prepare.outputs.SUBDOMAIN_BASE }}/g" .env.*
+          sed -i "s/example/${{ steps.prepare.outputs.SUBDOMAIN_BASE }}/g" README.md
+          sed -i "s/example/${{ steps.prepare.outputs.SUBDOMAIN_BASE }}/g" src-tauri/tauri.conf.json
+          sed -i "s/example/${{ steps.prepare.outputs.SUBDOMAIN_BASE }}/g" src-tauri/updater.json
           sed -i "s/customerName projectName/${{ inputs.customerName }} ${{ inputs.projectName }}/g" README.md
           sed -i "s/customerName projectName/${{ inputs.customerName }} ${{ inputs.projectName }}/g" src-tauri/Cargo.toml
           sed -i "s/customername-projectname/${{ inputs.customerName }}-${{ inputs.projectName }}/g" src-tauri/Cargo.toml
@@ -68,8 +73,20 @@ jobs:
       - name: Commit changes
         run: |
           git fetch origin
+          git checkout develop
+
+          # Stash modifications faites par les remplacements (sed)
+          git stash push -m "pre-rebase"
+
+          # Rebase à jour depuis origin/develop
+          git pull --rebase origin develop
+
+          # Restaure les fichiers modifiés
+          git stash pop || echo "Nothing to pop"
+
+          # Commit et push
           git add .
-          git commit -m "feat: update files with ${{ inputs.customerName }}-${{ inputs.projectName }}"
+          git commit -m "feat: update files with ${{ inputs.customerName }}-${{ inputs.projectName }}" || echo "No changes to commit"
           git push origin develop
 
       - name: Force staging to match develop
@@ -84,11 +101,11 @@ jobs:
         with:
           token: ${{ secrets.PAT_TOKEN }}
           event-type: deploy-to-init-project
-          client-payload: |
+          client-payload: >-
             {
               "customerName": "${{ inputs.customerName }}",
               "projectName": "${{ inputs.projectName }}",
-              "categoryApp": "${{ inputs.categoryApp }}"
-              "longDescriptionApp": "${{ inputs.longDescriptionApp }}"
+              "categoryApp": "${{ inputs.categoryApp }}",
+              "longDescriptionApp": "${{ inputs.longDescriptionApp }}",
               "shortDescriptionApp": "${{ inputs.shortDescriptionApp }}"
             }
