@@ -1,4 +1,4 @@
-# Flapi - project kubequest - Web / Mobile / Desktop
+# Kubequest - Website - Frontend
 
 ## 🛠 Tech Stack
 
