@@ -1,9 +1,9 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "ExampleNameApp",
-  "mainBinaryName": "example-name-app",
+  "productName": "kubequest",
+  "mainBinaryName": "kubequest-name-app",
   "version": "0.0.0",
-  "identifier": "com.flapi.examplenameapp",
+  "identifier": "com.flapi.kubequestnameapp",
   "build": {
     "frontendDist": "../.output/public/",
     "devUrl": "http://localhost:1460",
@@ -17,7 +17,7 @@
         "width": 600,
         "height": 800,
         "resizable": false,
-        "title": "ExampleNameApp",
+        "title": "kubequest",
         "decorations": false,
         "center": true,
         "alwaysOnTop": false,
@@ -28,7 +28,7 @@
     ],
     "macOSPrivateApi": true,
     "security": {
-      "csp": "default-src 'self'; connect-src http://127.0.0.1:3333/ https://dev.example.api.flapi.org https://staging.example.api.flapi.org https://example.api.flapi.org http://ipc.localhost;",
+      "csp": "default-src 'self'; connect-src http://127.0.0.1:3333/ https://dev.kubequest.api.flapi.org https://staging.kubequest.api.flapi.org https://kubequest.api.flapi.org http://ipc.localhost;",
       "devCsp": "",
       "assetProtocol": {
         "enable": false,
@@ -48,8 +48,8 @@
     "active": true,
     "category": "Business",
     "copyright": "Flapi",
-    "longDescription": "ExampleLongDescriptionApp",
-    "shortDescription": "ExampleShortDescriptionApp",
+    "longDescription": "ww",
+    "shortDescription": "ww",
     "license": "Proprietary",
     "licenseFile": "legal/LICENSE.txt",
     "targets": "all",
@@ -58,7 +58,7 @@
     "resources": [],
     "externalBin": [],
     "fileAssociations": [],
-    "homepage": "https://example.flapi.org",
+    "homepage": "https://kubequest.flapi.org",
     "useLocalToolsDir": false,
     "android": {
       "minSdkVersion": 24,
@@ -89,7 +89,7 @@
       "files": {},
       "hardenedRuntime": true,
       "entitlements": null,
-      "exceptionDomain": "127.0.0.1 localhost dev.example.api.flapi.org staging.example.api.flapi.org example.api.flapi.org",
+      "exceptionDomain": "127.0.0.1 localhost dev.kubequest.api.flapi.org staging.kubequest.api.flapi.org kubequest.api.flapi.org",
       "frameworks": [],
       "providerShortName": null,
       "signingIdentity": null,
@@ -126,7 +126,7 @@
         "installMode": "passive"
       },
       "active": true,
-      "endpoints": ["https://example.api.flapi.org/updater/updater-manifest/{{target}}/{{arch}}/{{current_version}}"],
+      "endpoints": ["https://kubequest.api.flapi.org/updater/updater-manifest/{{target}}/{{arch}}/{{current_version}}"],
       "dialog": false,
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE5NjU0QjdDQTI1Njk4MDYKUldRR21GYWlmRXRsR2Faekh4WGJSeVR4czJkTFZFSzI0enVtaGxxc2dNWm9yZG1nN0ZIU2Q3NXQK",
       "dangerousInsecureTransportProtocol": false

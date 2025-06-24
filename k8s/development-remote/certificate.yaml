@@ -1,12 +1,12 @@
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: dev-customerName-projectName-frontend-cert
-  namespace: dev-customerName-projectName-frontend
+  name: dev-project-kubequest-frontend-cert
+  namespace: dev-project-kubequest-frontend
 spec:
-  secretName: dev-customerName-projectName-frontend-tls
+  secretName: dev-project-kubequest-frontend-tls
   dnsNames:
-    - dev.example.flapi.org
+    - dev.kubequest.flapi.org
   issuerRef:
     name: letsencrypt-production
     kind: ClusterIssuer

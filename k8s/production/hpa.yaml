@@ -1,13 +1,13 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: prod-customerName-projectName-frontend-hpa
-  namespace: prod-customerName-projectName-frontend
+  name: prod-project-kubequest-frontend-hpa
+  namespace: prod-project-kubequest-frontend
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: prod-customerName-projectName-frontend-deployment
+    name: prod-project-kubequest-frontend-deployment
   minReplicas: 2
   maxReplicas: 5
   # Liste des métriques utilisées pour scaler (ici CPU et mémoire)

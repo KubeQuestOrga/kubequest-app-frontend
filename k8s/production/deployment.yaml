@@ -1,10 +1,10 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: prod-customerName-projectName-frontend-deployment
-  namespace: prod-customerName-projectName-frontend
+  name: prod-project-kubequest-frontend-deployment
+  namespace: prod-project-kubequest-frontend
   labels:
-    app: prod-customerName-projectName-frontend
+    app: prod-project-kubequest-frontend
 spec:
   strategy:
     type: RollingUpdate
@@ -13,15 +13,15 @@ spec:
       maxSurge: 1
   selector:
     matchLabels:
-      app: prod-customerName-projectName-frontend
+      app: prod-project-kubequest-frontend
   template:
     metadata:
       labels:
-        app: prod-customerName-projectName-frontend
+        app: prod-project-kubequest-frontend
     spec:
       containers:
-        - name: prod-customerName-projectName-frontend
-          image: corentin35/customerName-projectName-frontend:${TAG_VERSION}
+        - name: prod-project-kubequest-frontend
+          image: corentin35/project-kubequest-frontend:${TAG_VERSION}
           imagePullPolicy: Always
           ports:
             - containerPort: 3000

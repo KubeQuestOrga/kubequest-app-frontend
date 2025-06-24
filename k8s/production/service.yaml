@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: prod-customerName-projectName-frontend-service
-  namespace: prod-customerName-projectName-frontend
+  name: prod-project-kubequest-frontend-service
+  namespace: prod-project-kubequest-frontend
 spec:
   ports:
     - port: 3000
       targetPort: 3000
   selector:
-    app: prod-customerName-projectName-frontend
+    app: prod-project-kubequest-frontend

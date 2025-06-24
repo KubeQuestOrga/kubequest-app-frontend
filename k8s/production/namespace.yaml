@@ -1,4 +1,4 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: prod-customerName-projectName-frontend
+  name: prod-project-kubequest-frontend

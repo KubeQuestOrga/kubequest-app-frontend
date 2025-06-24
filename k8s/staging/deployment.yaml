@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: staging-customerName-projectName-frontend-deployment
-  namespace: staging-customerName-projectName-frontend
+  name: staging-project-kubequest-frontend-deployment
+  namespace: staging-project-kubequest-frontend
   labels:
-    app: staging-customerName-projectName-frontend
+    app: staging-project-kubequest-frontend
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: staging-customerName-projectName-frontend
+      app: staging-project-kubequest-frontend
   template:
     metadata:
       labels:
-        app: staging-customerName-projectName-frontend
+        app: staging-project-kubequest-frontend
     spec:
       containers:
-        - name: staging-customerName-projectName-frontend
-          image: corentin35/customerName-projectName-frontend:staging-${TAG_VERSION}
+        - name: staging-project-kubequest-frontend
+          image: corentin35/project-kubequest-frontend:staging-${TAG_VERSION}
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
